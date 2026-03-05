@@ -66,6 +66,7 @@
   - [Установка необходимых прав](#chownchmodvladelec640)
   - [Запуск и включение автозапуска](#zapyskiavutozapysk)
   - [Настройка брандмауэра (UFW)](#ufwopyatnastoika)
+- [Финал](#final)
 
 <a name="zavisimosti"></a>
 ## Подготовка системы / зависимостей
@@ -292,22 +293,17 @@ sudo nano /etc/systemd/system/pteroq.service
 ```
 ```bash
 [Unit]
-Description=Pterodactyl Wings Daemon
-After=docker.service
-Requires=docker.service
+Description=Pterodactyl Queue Worker
+After=redis-server.service
 
 [Service]
-User=pterodactyl
-Group=pterodactyl
-WorkingDirectory=/etc/pterodactyl
-LimitNOFILE=4096
-ExecStart=/usr/local/bin/wings
-ExecReload=/bin/kill -SIGTERM $MAINPID
-Restart=on-failure
+User=www-data
+Group=www-data
+Restart=always
+ExecStart=/usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3
+StartLimitInterval=180
+StartLimitBurst=30
 RestartSec=5s
-ExecStartPre=+/usr/bin/mkdir -p /run/wings
-ExecStartPre=+/usr/bin/chown pterodactyl:pterodactyl /run/wings
-ExecStartPre=+/usr/bin/chmod 755 /run/wings
 
 [Install]
 WantedBy=multi-user.target
@@ -446,6 +442,9 @@ ExecStart=/usr/local/bin/wings
 ExecReload=/bin/kill -SIGTERM $MAINPID
 Restart=on-failure
 RestartSec=5s
+ExecStartPre=+/usr/bin/mkdir -p /run/wings
+ExecStartPre=+/usr/bin/chown pterodactyl:pterodactyl /run/wings
+ExecStartPre=+/usr/bin/chmod 755 /run/wings
 
 [Install]
 WantedBy=multi-user.target
@@ -500,5 +499,22 @@ sudo ufw allow 2022
 sudo systemctl restart ufw
 sudo systemctl status ufw
 ```
-Вернитесь в веб-панель, откройте страницу узла. Если wings запущен и настроен правильно, статус узла изменится на зелёный (активный). 
-Поздравляю! Pterodactyl Panel и Daemon Wings работают! Теперь можно добавлять серверы на этот узел.
+Вернитесь в веб-панель, откройте страницу узла. Если wings запущен и настроен правильно, статус узла изменится на зелёный (активный).
+
+<a name="final"></a>
+## 🎉 Установка завершена!
+
+Поздравляю! Вы успешно развернули Pterodactyl Panel и Daemon Wings на своём сервере. Теперь вы можете создавать игровые серверы, управлять пользователями и наслаждаться мощью этой платформы.
+
+Если инструкция оказалась полезной, буду благодарен за:
+- ⭐ **Звезду** на GitHub – это motivates продолжать развитие.
+- 📝 **Сообщения об ошибках** или предложения по улучшению – создавайте issue или пишите напрямую.
+- 🔄 **Дополнения** – если вы добавили что-то новое (например, поддержку SSL или проброс портов), делитесь pull request'ами.
+
+Вместе мы сделаем эту инструкцию ещё лучше и доступнее для всех!
+
+**Полезные ссылки:**
+- [Официальная документация Pterodactyl](https://pterodactyl.io/)
+- [Сообщество Pterodactyl в Discord](https://discord.gg/pterodactyl)
+
+Удачного хостинга! 🚀
