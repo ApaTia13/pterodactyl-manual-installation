@@ -292,17 +292,22 @@ sudo nano /etc/systemd/system/pteroq.service
 ```
 ```bash
 [Unit]
-Description=Pterodactyl Queue Worker
-After=redis-server.service
+Description=Pterodactyl Wings Daemon
+After=docker.service
+Requires=docker.service
 
 [Service]
-User=www-data
-Group=www-data
-Restart=always
-ExecStart=/usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3
-StartLimitInterval=180
-StartLimitBurst=30
+User=pterodactyl
+Group=pterodactyl
+WorkingDirectory=/etc/pterodactyl
+LimitNOFILE=4096
+ExecStart=/usr/local/bin/wings
+ExecReload=/bin/kill -SIGTERM $MAINPID
+Restart=on-failure
 RestartSec=5s
+ExecStartPre=+/usr/bin/mkdir -p /run/wings
+ExecStartPre=+/usr/bin/chown pterodactyl:pterodactyl /run/wings
+ExecStartPre=+/usr/bin/chmod 755 /run/wings
 
 [Install]
 WantedBy=multi-user.target
